@@ -1,0 +1,39 @@
+<launch>
+<!-- preview rosbag file previously recorded with bebop 2
+
+usage:
+
+roslaunch testing dso_bebop_rosbag.launch bag:=<full path to bagfile>
+
+-->
+
+<!-- read bagname from command line -->
+<arg name="bag" />
+
+<!-- run rosbag play with specified bag -->
+<node pkg="rosbag" type="play" name="rosbag_play"
+       args="--clock -s 10 --hz 50 -q $(arg bag)" output="screen"/>
+
+<!-- run image_view to see images from the bag -->
+<node pkg="image_view" type="image_view" name="imview" args="image:=/bebop/image_raw" />
+
+
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
+    <rosparam command="load" file="$(find testing)/params/ekf_robot_localization.yaml"/>
+  </node>
+
+  <node pkg="dso_ros" type="dso_node" name="dso_ros" output="screen">
+    <remap from="image" to="/bebop/image_raw"/>
+    <param name="debug" type="bool" value="false"/>
+    <param name="display_GUI" type="bool" value="true"/>
+
+    <param name="calib_file_path" type="string" value="$(find testing)/config/bebop2_camv2.txt"/>
+    <param name="vignette_file_path" type="string" value=""/>
+    <param name="gamma_file_path" type="string" value=""/>
+
+    <param name="dso_frame_id" type="string" value="dso_odom"/>
+    <param name="odom_frame_id" type="string" value="odom"/>
+    <param name="base_frame_id" type="string" value="base_link"/>
+    <param name="camera_frame_id" type="string" value="base_link"/>
+  </node>
+</launch>
